@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quiz App</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{
+  font-family:'Poppins',sans-serif;
+  background:linear-gradient(135deg,#667eea,#764ba2);
+  min-height:100vh;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  padding:20px;
+}
+.app{
+  background:#fff;
+  width:90%;
+  max-width:520px;
+  padding:40px 30px;
+  border-radius:20px;
+  box-shadow:0 15px 30px rgba(0,0,0,0.2);
+  text-align:center;
+  animation:fadeIn .8s ease;
+}
+@keyframes fadeIn{
+  from{opacity:0;transform:scale(.95)}
+  to{opacity:1;transform:scale(1)}
+}
+h1{font-size:28px;font-weight:700;color:#444;margin-bottom:25px;}
+label{font-size:18px;color:#555;display:block;margin-top:15px;}
+select,button{margin-top:12px;padding:14px 20px;border:none;border-radius:12px;font-size:16px;cursor:pointer;transition:all .3s ease;}
+select{width:70%;background:#f4f4f4;color:#333;}
+button.primary{background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;font-weight:600;box-shadow:0 4px 15px rgba(102,126,234,0.4);display:block;margin:20px auto 0;}
+button.primary:hover{transform:translateY(-2px);box-shadow:0 6px 18px rgba(102,126,234,0.5);}
+.question{font-size:20px;margin-bottom:25px;color:#333;font-weight:600;line-height:1.4;}
+.options{list-style:none;padding:0;margin-bottom:20px;}
+.options li{margin:12px 0;}
+.options button{width:100%;background:#fff;border:2px solid #667eea;color:#667eea;font-weight:600;padding:14px;border-radius:12px;transition:all .3s ease;}
+.options button:hover{background:#667eea;color:#fff;}
+.options button:disabled{opacity:.6;cursor:not-allowed;}
+.score-box{font-size:22px;color:#444;margin-bottom:25px;line-height:1.6;}
+.highlight{color:#667eea;font-weight:700;}
+button.exit{background:#e53935;color:#fff;box-shadow:0 4px 15px rgba(229,57,53,0.4);}
+button.exit:hover{transform:translateY(-2px);box-shadow:0 6px 18px rgba(229,57,53,0.5);}
+</style>
+</head>
+<body>
+<div class="app">
+  <h1>🎯 Quiz App</h1>
+
+  <!-- Setup Screen -->
+  <div id="setup">
+    <label for="level">Choose Difficulty Level:</label>
+    <select id="level">
+      <option value="easy">Easy</option>
+      <option value="medium">Medium</option>
+      <option value="hard">Hard</option>
+    </select>
+
+    <button class="primary" id="startBtn">Start Quiz</button>
+  </div>
+
+  <!-- Quiz Screen -->
+  <div id="quiz" style="display:none;">
+    <div class="question" id="question"></div>
+    <ul class="options" id="options"></ul>
+    <button class="primary" id="nextBtn" style="display:none;">Next ➡</button>
+    <button class="exit" id="exitBtn">Exit</button>
+  </div>
+
+  <!-- Score Screen -->
+  <div id="scoreSection" style="display:none;">
+    <div class="score-box" id="scoreText"></div>
+    <button class="primary" onclick="location.reload()">🔄 Play Again</button>
+  </div>
+</div>
+
+<script>
+// Quiz questions
+const quizData = [
+  {level:"easy",question:"What does HTML stand for?",options:["Hyper Text Markup Language","Hyper Trainer Marking Language","Hyper Text Marketing Language","Hyper Tool Multi Language"],answer:"Hyper Text Markup Language"},
+  {level:"easy",question:"Which language is used for styling web pages?",options:["HTML","CSS","Python","Java"],answer:"CSS"},
+  {level:"easy",question:"Which tag defines a paragraph?",options:["<p>","<para>","<par>","<paragraph>"],answer:"<p>"},
+  {level:"easy",question:"Which tag is for an image?",options:["<img>","<image>","<pic>","<src>"],answer:"<img>"},
+  {level:"easy",question:"Default display of <div>?",options:["block","inline","flex","grid"],answer:"block"},
+  {level:"easy",question:"Tag for unordered list?",options:["<ul>","<ol>","<li>","<list>"],answer:"<ul>"},
+  {level:"easy",question:"HTML tag for largest heading?",options:["<h1>","<h6>","<heading>","<head>"],answer:"<h1>"},
+  {level:"easy",question:"HTML element for browser tab title?",options:["<title>","<head>","<meta>","<header>"],answer:"<title>"},
+  {level:"easy",question:"Which attribute adds inline style?",options:["style","class","css","id"],answer:"style"},
+  {level:"easy",question:"Attribute for link URL?",options:["href","src","link","url"],answer:"href"},
+
+  {level:"medium",question:"Inside which tag do we put JS?",options:["<script>","<js>","<javascript>","<scripting>"],answer:"<script>"},
+  {level:"medium",question:"CSS property for text color?",options:["color","font-color","text-color","foreground"],answer:"color"},
+  {level:"medium",question:"Original developer of JS?",options:["Netscape","Microsoft","Google","Oracle"],answer:"Netscape"},
+  {level:"medium",question:"Tag for external CSS file?",options:["<link>","<style>","<css>","<import>"],answer:"<link>"},
+  {level:"medium",question:"Selector for id='header'?",options:["#header",".header","header","*header"],answer:"#header"},
+  {level:"medium",question:"Flexbox default direction?",options:["row","column","wrap","reverse"],answer:"row"},
+  {level:"medium",question:"HTML5 element for nav links?",options:["<nav>","<section>","<menu>","<links>"],answer:"<nav>"},
+  {level:"medium",question:"Element for main content?",options:["<main>","<content>","<section>","<article>"],answer:"<main>"},
+  {level:"medium",question:"Required input field attribute?",options:["required","must","validate","needed"],answer:"required"},
+  {level:"medium",question:"CSS property to round corners?",options:["border-radius","border-round","corner-radius","round"],answer:"border-radius"},
+
+  {level:"hard",question:"JS single-line comment symbol?",options:["//","/* */","#","<!-- -->"],answer:"//"},
+  {level:"hard",question:"Result of 2+'2' in JS?",options:["22","4","Error","NaN"],answer:"22"},
+  {level:"hard",question:"CSS property for z-axis stacking?",options:["z-index","stack","layer","position"],answer:"z-index"},
+  {level:"hard",question:"Difference between == and ===?",options:["== converts types, === strict","They are identical","Both compare types","None"],answer:"== converts types, === strict"},
+  {level:"hard",question:"Array method to add elements to end?",options:["push","pop","shift","unshift"],answer:"push"},
+  {level:"hard",question:"CSS property for overflow?",options:["overflow","wrap","clip","hidden"],answer:"overflow"},
+  {level:"hard",question:"HTTP code for Not Found?",options:["404","200","301","500"],answer:"404"},
+  {level:"hard",question:"Convert JSON string to JS object?",options:["JSON.parse","JSON.stringify","parseJSON","toObject"],answer:"JSON.parse"},
+  {level:"hard",question:"Attribute for placeholder in input?",options:["placeholder","hint","title","value"],answer:"placeholder"},
+  {level:"hard",question:"Keyword for block-scoped constant?",options:["const","var","let","constant"],answer:"const"}
+];
+
+// Shuffle helper
+function shuffleArray(arr){const a=arr.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+
+const setup=document.getElementById("setup");
+const quiz=document.getElementById("quiz");
+const scoreSection=document.getElementById("scoreSection");
+const questionEl=document.getElementById("question");
+const optionsEl=document.getElementById("options");
+const nextBtn=document.getElementById("nextBtn");
+const scoreText=document.getElementById("scoreText");
+const exitBtn=document.getElementById("exitBtn");
+
+let questions=[];
+let current=0;
+let score=0;
+
+// Start quiz
+document.getElementById("startBtn").addEventListener("click",()=>{
+  const level=document.getElementById("level").value;
+  questions=shuffleArray(quizData.filter(q=>q.level===level)).slice(0,15);
+  current=0;
+  score=0;
+  setup.style.display="none";
+  quiz.style.display="block";
+  scoreSection.style.display="none";
+  loadQuestion();
+});
+
+// Exit quiz
+exitBtn.addEventListener("click",()=>{
+  quiz.style.display="none";
+  setup.style.display="block";
+});
+
+// Load a question
+function loadQuestion(){
+  const q=questions[current];
+  questionEl.textContent=q.question;
+  optionsEl.innerHTML="";
+  const opts=shuffleArray(q.options);
+  opts.forEach(opt=>{
+    const li=document.createElement("li");
+    const btn=document.createElement("button");
+    btn.textContent=opt;
+    btn.onclick=()=>selectAnswer(btn,q.answer);
+    li.appendChild(btn);
+    optionsEl.appendChild(li);
+  });
+  nextBtn.style.display="none";
+}
+
+// Select answer
+function selectAnswer(btn,correct){
+  const all=optionsEl.querySelectorAll("button");
+  all.forEach(b=>b.disabled=true);
+  if(btn.textContent===correct){
+    score++;
+    btn.style.background="linear-gradient(135deg,#34e89e,#0f3443)";
+    btn.style.color="#fff";
+  }else{
+    btn.style.background="linear-gradient(135deg,#e53935,#e35d5b)";
+    btn.style.color="#fff";
+    all.forEach(b=>{if(b.textContent===correct){b.style.background="linear-gradient(135deg,#34e89e,#0f3443)";b.style.color="#fff";}});
+  }
+  nextBtn.style.display="inline-block";
+}
+
+// Next question
+nextBtn.addEventListener("click",()=>{
+  current++;
+  if(current<questions.length) loadQuestion();
+  else showScore();
+});
+
+// Show score
+function showScore(){
+  quiz.style.display="none";
+  scoreSection.style.display="block";
+  const percent=Math.round((score/questions.length)*100);
+  const msg=percent>=75?"🎉 Excellent!":percent>=50?"👍 Good Job!":"😅 Keep Practicing!";
+  scoreText.innerHTML=`You scored <span class="highlight">${score}</span> out of <span class="highlight">${questions.length}</span> (${percent}%)<br>${msg}`;
+}
+</script>
+</body>
+</html>
